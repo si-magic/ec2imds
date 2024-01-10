@@ -1,0 +1,44 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "ec2imds",
+			"type": "python",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/src",
+			"module": "ec2imds",
+			"args": [],
+			"justMyCode": true
+		},
+		{
+			"name": "ec2imds -h",
+			"type": "python",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/src",
+			"module": "ec2imds",
+			"args": [ "-h" ],
+			"justMyCode": true
+		},
+		{
+			"name": "ec2imds -U",
+			"type": "python",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/src",
+			"module": "ec2imds",
+			"args": [ "-U", ">", "/dev/null" ],
+			"justMyCode": true
+		},
+		{
+			"name": "ec2imds -L",
+			"type": "python",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/src",
+			"module": "ec2imds",
+			"args": [ "-L" ],
+			"justMyCode": true
+		}
+	]
+}
