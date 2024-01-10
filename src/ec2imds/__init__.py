@@ -192,12 +192,14 @@ class IMDSWrapper:
 
 		self._rnd = random.Random()
 		self._token: str = None
-		self._token_expiry = datetime.datetime.fromtimestamp(0, datetime.UTC)
+		self._token_expiry: datetime.datetime = None
 		self._endpoints = endpoints
 		self._token_ttl = token_ttl
 		self._current: tuple[str, int] = None
 		self._tries = tries
 		self._retry_delay = retry_delay
+
+		self.expire_token()
 
 		self._define_scalar_directive("meta-data/ami-id")
 		self._define_scalar_directive("meta-data/ami-launch-index", int)
@@ -313,6 +315,9 @@ class IMDSWrapper:
 	def token_expired (self) -> bool:
 		return self._token_expiry < datetime.datetime.now(datetime.UTC)
 
+	def expire_token (self):
+		self._token_expiry = datetime.datetime.fromtimestamp(0, datetime.UTC)
+
 	def _set_current (self, service: str = "http", protocol: str = "tcp"):
 		if self._current: return
 		self._current = self._eyeball(service, protocol)
@@ -330,20 +335,35 @@ class IMDSWrapper:
 			rl = rl)
 
 	def reset_states (self):
+		self.expire_token()
 		self._token = None
-		self._token_expiry = datetime.datetime.min
 		self._current = None
 
 	def open_url (self, path: str, apiver: str = None) -> io.BufferedIOBase | None:
 		# ensure that there's a token
 		self.get_token()
 
-		req = self.mk_request(loc = path, apiver = apiver)
-		try:
-			return self._try_urlopen(req)
-		except error.HTTPError as e:
-			if e.code != 404:
-				raise e
+		saved = None
+		for i in range(0, 2):
+			req = self.mk_request(loc = path, apiver = apiver)
+			try:
+				return self._try_urlopen(req)
+			except error.HTTPError as e:
+				saved = e
+				match e.code:
+					case 404:
+						return
+					case 401:
+						'''Somehow the endpoint rejects the token. Probably the
+						leftover token from the image is being used. Get a new
+						token and try one more time.
+						'''
+						self.expire_token()
+						self.get_token()
+						continue
+					case _:
+						break
+		raise saved
 
 	def load_scalar (self, path: str, tf: Callable[[str], Any] = None):
 		if tf is None:
