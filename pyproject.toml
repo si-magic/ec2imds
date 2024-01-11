@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ec2imds"
+version = "0.0.0"
+authors = [
+  { name="David Timber", email="dxdt@dev.snart.me" },
+]
+description = "ec2imds, the extensive EC2 Instance Meta Data Service(IMDS) tool"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/si-magic/ec2imds"
+Issues = "https://github.com/si-magic/ec2imds/issues"
