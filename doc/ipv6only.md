@@ -1,16 +1,16 @@
 # Using it in IPv6 only environment
 The module works in both dual-stack and IPv6 only environment. Recenly, running
-EC2 instances in IPv6 only subnets has become an option to consider[^1] [^2].
+EC2 instances in IPv6 only subnets has become an option to consider.
 
 The module implements rfc8305.
 
 There are quite a few set ups you need to do.
 
-## Instance Metadata Options[^3]
+## Instance Metadata Options
 The IPv6 IMDS endpoint is not enabled by default even if the instance is
 launched in an IPv6 subnet.
 
-For instances already launched, refer following[^4].
+For instances already launched, refer following.
 
 ```bash
 aws ec2 modify-instance-metadata-options \
@@ -19,7 +19,7 @@ aws ec2 modify-instance-metadata-options \
 ```
 
 When launching instances or making launch templates using AWS Management
-Console, enable "**Metadata transport**" in the "**Advanced details**".[^5]
+Console, enable "**Metadata transport**" in the "**Advanced details**".
 
 ## More
 For more info, visit
