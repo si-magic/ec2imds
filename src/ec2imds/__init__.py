@@ -236,9 +236,9 @@ class IMDSWrapper:
 			3,
 			[
 				# index
-				( re.compile('''network\\/interfaces\\/macs\\/(?:(?:[a-fA-F0-9]{2}:)){5}[a-fA-F0-9]{2}\\/(device-number|network-card-index)'''), int ),
+				( re.compile('''meta-data\\/network\\/interfaces\\/macs\\/(?:(?:[a-fA-F0-9]{2}:)){5}[a-fA-F0-9]{2}\\/(device-number|network-card-index)'''), int ),
 				# multiline values
-				( re.compile('''network\\/interfaces\\/macs\\/(?:(?:[a-fA-F0-9]{2}:)){5}[a-fA-F0-9]{2}\\/(ipv4-associations\\/public-ip|ipv6s|local-ipv4s|public-ipv4s|security-groups|security-group-ids|subnet-ipv6-cidr-blocks|vpc-ipv4-cidr-blocks|vpc-ipv6-cidr-blocks)'''), IMDSLambda.ml2list )
+				( re.compile('''meta-data\\/network\\/interfaces\\/macs\\/(?:(?:[a-fA-F0-9]{2}:)){5}[a-fA-F0-9]{2}\\/(ipv4-associations\\/public-ip|ipv6s|local-ipv4s|public-ipv4s|security-groups|security-group-ids|subnet-ipv6-cidr-blocks|vpc-ipv4-cidr-blocks|vpc-ipv6-cidr-blocks)'''), IMDSLambda.ml2list )
 			])
 		self._define_scalar_directive("meta-data/placement/availability-zone")
 		self._define_scalar_directive("meta-data/placement/availability-zone-id")
@@ -479,6 +479,6 @@ class IMDSWrapper:
 
 		return ret
 
-ver = "0.0.0"
+ver = "0.0.3"
 rev = 0
 imds_ver = IMDSAPIMagic.version

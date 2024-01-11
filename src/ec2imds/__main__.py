@@ -15,6 +15,19 @@ class UsageError (BaseException): ...
 class TTYOutputError(BaseException): ...
 
 class RunParam:
+	def _gethome ():
+		env = None
+
+		if sys.platform.startswith("win32"):
+			env = "LOCALAPPDATA"
+		else:
+			env = "HOME"
+		ret = os.getenv(env)
+
+		if ret:
+			return ret
+		return "."
+
 	def __init__ (self):
 		home = os.getenv("HOME")
 
@@ -24,10 +37,9 @@ class RunParam:
 		self.directives: dict[str, str] = dict[str, str]()
 		self.verbose: int = 0
 		self.imds = IMDSAPIMagic.endpoints
-		if home:
-			self.t: str = home + "/.cache/ec2-imds/tokens"
-		else:
-			self.t: str = ""
+		self.t: str = "{h}{ps}.cache{ps}ec2-imds{ps}tokens".format(
+			h = RunParam._gethome(),
+			ps = os.path.sep)
 
 def print_help (out: io.TextIOBase, program: str) -> int:
 	defaults = RunParam()
@@ -159,11 +171,23 @@ def cmd_user_data ():
 		# Nothing we can do if the OS doesn't do isatty()
 		pass
 
-	with w.open_userdata() as stream:
-		flag = bool(stream)
-		while flag:
-			flag = sys.stdout.buffer.write(stream.read(OurMagic.Limits.MAX_IMDS_READ)) > 0
+	stream = w.open_userdata()
+	if not stream:
+		return
+
+	flag = True
+	while flag:
+		flag = sys.stdout.buffer.write(stream.read(OurMagic.Limits.MAX_IMDS_READ)) > 0
+
 	sys.stdout.buffer.flush()
+	stream.close()
+
+def mk_tokenfile_path (endpoint: tuple[str, int]) -> str:
+	fname = IMDSWrapper.construct_endpoint_str(endpoint)
+	if sys.platform.startswith("win32"):
+		fname = fname.replace(':', ';')
+	fp = rp.t + os.path.sep + fname
+	return fp
 
 def on_new_token (
 		token: str,
@@ -175,7 +199,7 @@ def on_new_token (
 		"expiry": expiry.isoformat()
 	}
 
-	fp = rp.t + os.path.sep + IMDSWrapper.construct_endpoint_str(endpoint)
+	fp = mk_tokenfile_path(endpoint)
 	os.makedirs(rp.t, 0o700, True)
 
 	saved_umask = os.umask(0o077)
@@ -184,7 +208,7 @@ def on_new_token (
 	os.umask(saved_umask)
 
 def on_load_token (endpoint: tuple[str, int]) -> tuple[str, datetime.datetime]:
-	fp = rp.t + os.path.sep + IMDSWrapper.construct_endpoint_str(endpoint)
+	fp = mk_tokenfile_path(endpoint)
 	try:
 		with open(fp, "rb") as f:
 			t = json.load(f)

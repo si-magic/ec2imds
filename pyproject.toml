@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ec2imds"
-version = "0.0.0"
+version = "0.0.3"
 authors = [
   { name="David Timber", email="dxdt@dev.snart.me" },
 ]
