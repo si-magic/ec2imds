@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 import io
 import json
 import random
@@ -8,8 +9,6 @@ import socket
 from time import sleep
 from typing import Any, Callable
 from urllib import error, request
-
-from construct import Enum
 
 from ec2imds.exceptions import *
 
@@ -291,22 +290,36 @@ class IMDSWrapper:
 						i = self._rnd.randrange(0, len(l))
 						ep = l[i]
 						s = socket.socket(ep[0], ep[1], ep[2])
-						socks.append(s)
-						ep_map[s] = h
-						s.setblocking(True)
+						s.setblocking(False)
+
 						try:
 							s.connect(ep[4])
-						except ConnectionRefusedError: pass
+						except BlockingIOError:
+							pass
+						except:
+							s.close()
+							continue
+						socks.append(s)
+						ep_map[s] = h
 					except socket.gaierror:
 						pass
 			# do select
 			ready = select.select([], socks, [], OurMagic.Timeout.EYEBALL)[1]
 			# select the best one
 			if ready:
+				ret = None
 				for s in ready:
+					en = s.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+					if en:
+						continue
+
 					if s.family == socket.AF_INET6:
 						return ep_map[s]
-				return ep_map[ready[0]]
+					elif not ret:
+						ret = ep_map[s]
+
+				if ret:
+					return ret
 		finally:
 			for s in socks:
 				s.close()
@@ -455,6 +468,14 @@ class IMDSWrapper:
 			data = data,
 			headers = headers,
 			method = method)
+
+	def all (self, args = None) -> dict[str, Any]:
+		ret = dict[str, Any]()
+
+		for k, d in self.dir_dict.items():
+			ret[k] = d.func(args)
+
+		return ret
 
 ver = "0.0.0"
 rev = 0
