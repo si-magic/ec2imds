@@ -99,7 +99,10 @@ def init_from_opts (argv: list[str]) -> tuple[RunParam, IMDSWrapper]:
 	dirs = w.dir_dict.keys()
 
 	if not rp.cmds:
-		rp.cmds.add("exec-all")
+		if args:
+			rp.cmds.add("exec")
+		else:
+			rp.cmds.add("exec-all")
 	if len(rp.cmds) > 2 and "help" not in rp.cmds and "version" not in rp.cmds:
 		raise UsageError("{v}: conflicting commands".format(",".join(rp.cmds)))
 
@@ -113,7 +116,7 @@ def init_from_opts (argv: list[str]) -> tuple[RunParam, IMDSWrapper]:
 		rp.cmds.remove("exec-all")
 		rp.arg = OurMagic.RE.ALL
 
-	if rp.cmds.intersection([ "list", "exec" ]):
+	if rp.cmds.intersection([ "list", "exec" ]) and rp.arg:
 		for k in w.dir_dict.keys():
 			if rp.arg.match(k):
 				rp.directives[k] = None
@@ -156,10 +159,11 @@ def cmd_user_data ():
 		# Nothing we can do if the OS doesn't do isatty()
 		pass
 
-	stream = w.open_userdata()
-	flag = bool(stream)
-	while flag:
-		flag = sys.stdout.buffer.write(stream.read(OurMagic.Limits.MAX_IMDS_READ)) > 0
+	with w.open_userdata() as stream:
+		flag = bool(stream)
+		while flag:
+			flag = sys.stdout.buffer.write(stream.read(OurMagic.Limits.MAX_IMDS_READ)) > 0
+	sys.stdout.buffer.flush()
 
 def on_new_token (
 		token: str,
@@ -195,7 +199,7 @@ try:
 except (UsageError, ValueError) as e:
 	perr(str(e))
 	perr("Run {prog} -h for help.".format(prog = prog))
-	exit(OurMagic.EC.USAGE_ERR)
+	exit(OurMagic.EC.USAGE_ERR.value)
 
 # install the token hook
 w.on_new_token = on_new_token

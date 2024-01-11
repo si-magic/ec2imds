@@ -31,9 +31,11 @@ class OurMagic:
 	class RE:
 		ALL = re.compile('''.*''')
 		EP_FQDN = re.compile('''^((?:[a-z0-9\\-]+\\.?)+)(?::([0-9]+))?$''', re.I)
-		EP_4 = re.compile('''^\\[([a-f0-9:]+)\\](?::([0-9]+))?$''', re.I)
-		EP_6 = re.compile('''^([0-9.]+)(?::([0-9]+))?$''', re.I)
-		DIRECTIVE = re.compile('''([a-z0-9\\/-_]+)(?:=(.*))?''', re.I)
+		EP_4 = re.compile('''^([0-9.]+)(?::([0-9]+))?$''', re.I)
+		# Reserved interface index for future use. Python does not seem to
+		# provide facilities for specifying source interface.
+		EP_6 = re.compile('''^\\[([a-f0-9:]+(?:%[a-z0-9\\-_]+)?)\\](?::([0-9]+))?$''', re.I)
+		DIRECTIVE = re.compile('''([a-z0-9\\/\\-_]+)(?:=(.*))?''', re.I)
 
 '''
 elastic-gpus and elastic-inference are intentionally left out.
